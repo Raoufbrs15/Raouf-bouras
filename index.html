@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Prévente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.bot {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .message.bot .message-bubble::before {
+            content: "🤖";
+            margin-right: 8px;
+        }
+
+        .chat-input {
+            background: white;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #questionInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #questionInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #sendButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        #sendButton:hover {
+            transform: translateY(-2px);
+        }
+
+        #sendButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 500px;
+                margin: 10px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="status-indicator" title="Connecté"></div>
+            <h1>🤖 Assistant Prévente</h1>
+            <p>Je suis là pour répondre à vos questions commerciales</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                👋 Bonjour ! Posez-moi vos questions sur nos produits, tarifs ou prenez rendez-vous.
+            </div>
+            <div class="actions">
+                <button class="action-btn" onclick="askQuestion('Bonjour')">👋 Dire bonjour</button>
+                <button class="action-btn" onclick="askQuestion('Quels sont vos tarifs ?')">💰 Tarifs</button>
+                <button class="action-btn" onclick="askQuestion('Que vendez-vous ?')">🛍️ Produits</button>
+                <button class="action-btn" onclick="askQuestion('Je veux un rendez-vous')">📅 RDV</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <span class="loading-dots">Le chatbot réfléchit</span>
+        </div>
+        
+        <div class="chat-input">
+            <input 
+                type="text" 
+                id="questionInput" 
+                placeholder="Tapez votre question ici..." 
+                maxlength="500"
+                onkeypress="if(event.key==='Enter') sendMessage()"
+            >
+            <button id="sendButton" onclick="sendMessage()">Envoyer</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const questionInput = document.getElementById('questionInput');
+        const sendButton = document.getElementById('sendButton');
+        const loading = document.getElementById('loading');
+
+        // Fonction pour ajouter un message au chat
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll vers le bas
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Fonction pour envoyer une question
+        async function askQuestion(question) {
+            if (!question.trim()) return;
+            
+            // Afficher la question de l'utilisateur
+            addMessage(question, true);
+            
+            // Afficher le loading
+            loading.style.display = 'block';
+            sendButton.disabled = true;
+            
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Afficher la réponse du bot
+                addMessage(data.reponse, false);
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                addMessage('Désolé, une erreur est survenue. Veuillez réessayer.', false);
+            } finally {
+                loading.style.display = 'none';
+                sendButton.disabled = false;
+                questionInput.value = '';
+                questionInput.focus();
+            }
+        }
+
+        // Fonction pour envoyer via le bouton/Enter
+        function sendMessage() {
+            const question = questionInput.value.trim();
+            if (question) {
+                askQuestion(question);
+            }
+        }
+
+        // Fonctions utilitaires
+        async function showMemory() {
+            try {
+                const response = await fetch('/memory?limit=10');
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    addMessage('Aucun historique disponible.', false);
+                    return;
+                }
+                
+                let historyText = '📋 Historique des conversations:\n\n';
+                data.forEach((conv, index) => {
+                    historyText += `${index + 1}. Q: ${conv.question}\n   R: ${conv.reponse}\n\n`;
+                });
+                
+                addMessage(historyText, false);
+            } catch (error) {
+                addMessage('Erreur lors de la récupération de l\'historique.', false);
+            }
+        }
+
+        async function resetMemory() {
+            if (confirm('Êtes-vous sûr de vouloir effacer l\'historique ?')) {
+                try {
+                    const response = await fetch('/reset', { method: 'DELETE' });
+                    const data = await response.json();
+                    addMessage(data.message, false);
+                } catch (error) {
+                    addMessage('Erreur lors de la réinitialisation.', false);
+                }
+            }
+        }
+
+        // Focus automatique sur l'input au chargement
+        window.onload = function() {
+            questionInput.focus();
+        };
+
+        // Test de connexion au démarrage
+        fetch('/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Connexion au serveur réussie:', data);
+            })
+            .catch(error => {
+                console.error('❌ Erreur de connexion:', error);
+                addMessage('⚠️ Problème de connexion au serveur. Vérifiez que le serveur est démarré.', false);
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+PS C:\Users\user> cd "C:\Users\user\OneDrive\Desktop\Nouveau dossier"
+PS C:\Users\user\OneDrive\Desktop\Nouveau dossier> C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe -m uvicorn main:app --reload
