@@ -193,7 +193,7 @@ Bot: "Je serais ravi d'organiser un rendez-vous..."
 
 ## 👥 Équipe et Contributions
 
-**Développeur Principal** : [Votre nom]
+**Développeur Principal** : [bouras ]
 - Architecture et développement backend
 - Interface utilisateur et UX
 - Base de données et persistance
@@ -202,8 +202,8 @@ Bot: "Je serais ravi d'organiser un rendez-vous..."
 ## 📞 Support et Contact
 
 Pour toute question technique ou commerciale :
-- **Email** : [votre-email]
-- **GitHub** : [lien-repo]
+- **Email** : raouffbouras@gmail.com
+- **GitHub** : https://github.com/Raoufbrs15/Raouf-bouras
 - **Documentation** : http://127.0.0.1:8000/docs
 
 ---
@@ -218,4 +218,4 @@ Base de données   : SQLite (léger et efficace)
 Performance       : <100ms par requête
 ```
 
-**Projet réalisé dans le cadre du cours [Nom du cours] - [Année académique]**
+**Projet réalisé dans le cadre du cours [programation ] - [2025]**
